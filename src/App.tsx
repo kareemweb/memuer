@@ -23,9 +23,6 @@ import { format } from 'date-fns';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { VoiceMessagePlayer } from './components/VoiceMessagePlayer';
-import { FloatingWorldCupButton } from './components/FloatingWorldCupButton';
-import { WorldCupOnboarding } from './components/WorldCupOnboarding';
-import { WorldCupMatchTracker } from './components/WorldCupMatchTracker';
 import { useWorldCup } from './context/WorldCupContext';
 import { EgyptFootballGame } from './components/EgyptFootballGame';
 
@@ -279,6 +276,7 @@ export default function App() {
   } : (themeStyles[user?.preferences?.theme || 'vibrant'] || themeStyles.vibrant);
 
   const [activeChat, setActiveChat] = useState<ChatSession | null>(null);
+  const [showEgyptSolidarityAnnouncement, setShowEgyptSolidarityAnnouncement] = useState(true);
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [contacts, setContacts] = useState<UserProfile[]>([]);
@@ -3990,30 +3988,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* World Cup Match Tracker PINNED Widget */}
-              {sidebarWidgetPinned && (
-                <div className="px-3 py-1 animate-fade-in">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className={cn("text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5", currentTheme.accentText)}>
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                      </span>
-                      Live Match Tracker
-                    </p>
-                    <button 
-                      onClick={() => setSidebarWidgetPinned(false)}
-                      className="text-[9px] font-bold text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                      title="Unpin Widget"
-                    >
-                      Unpin
-                    </button>
-                  </div>
-                  <div className="overflow-visible">
-                    <WorldCupMatchTracker compact={true} />
-                  </div>
-                </div>
-              )}
+
 
               <div className="px-3 space-y-6">
                 {/* Direct Messages Section */}
@@ -4499,6 +4474,38 @@ export default function App() {
 
       {/* Main Content Area: Chat Window */}
       <div className={cn("flex-1 flex flex-col relative min-w-0 overflow-hidden", currentTheme.bg)}>
+        {/* BIG ANNOUNCEMENT BANNER FOR EGYPT SOLIDARITY AND WORLD CUP REMOVAL */}
+        {showEgyptSolidarityAnnouncement && (
+          <div className="bg-gradient-to-r from-red-700 via-neutral-950 to-amber-600 border-b border-red-500/20 px-4 sm:px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 relative z-[45] shrink-0 shadow-2xl animate-fade-in">
+            <div className="flex items-start gap-4 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0 shadow-inner select-none text-2xl">
+                🇪🇬
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-red-100 to-white flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                  Official System Announcement: World Cup Removal
+                </h3>
+                <p className="text-xs text-zinc-300 font-medium max-w-4xl leading-relaxed font-sans">
+                  We have completely deactivated and removed all FIFA World Cup features, live trackers, and themed widgets from the platform. This action is taken in solid protest against systemic bias, racism, and unfairness shown towards the Egypt National Team. We refuse to host or facilitate features for any organization or tournament that treats nations with partiality or injustice.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+              <span className="text-[9px] font-black uppercase bg-red-500/15 text-red-400 px-3 py-1.5 rounded-full border border-red-500/30 tracking-widest select-none">
+                Solidarity Active
+              </span>
+              <button 
+                onClick={() => setShowEgyptSolidarityAnnouncement(false)}
+                className="p-1.5 hover:bg-white/10 text-white/50 hover:text-white rounded-lg transition-colors cursor-pointer"
+                title="Dismiss Announcement"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {!activeChat && (
             <div className="lg:hidden h-14 border-b border-white/5 flex items-center px-4 bg-black/10 backdrop-blur-md relative z-20 shrink-0">
             <button 
@@ -5769,87 +5776,18 @@ export default function App() {
                     />
                   </div>
 
-                  {/* World Cup 2026 Widget Option */}
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3">
+                  {/* World Cup Features Removed Announcement */}
+                  <div className="p-4 bg-red-950/20 border border-red-500/20 rounded-2xl space-y-3 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">World Cup 2026 Widget</p>
-                      <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-widest animate-pulse">Live</span>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400 flex items-center gap-1.5">
+                        <span>🇪🇬</span> World Cup Features Removed
+                      </p>
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 uppercase tracking-widest">Permanent</span>
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-indigo-100 font-bold">Pin Tracker to Chat Sidebar</span>
-                          <span className="text-[9px] text-indigo-300/70">Adds live scores & fixtures widget</span>
-                        </div>
-                        <button 
-                          onClick={() => setSidebarWidgetPinned(!sidebarWidgetPinned)}
-                          className={cn(
-                            "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                            sidebarWidgetPinned ? "bg-cyan-500" : "bg-zinc-700"
-                          )}
-                        >
-                          <span className={cn(
-                            "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                            sidebarWidgetPinned ? (document.documentElement.dir === 'rtl' ? "-translate-x-4" : "translate-x-4") : "translate-x-0"
-                          )} />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-white/5">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-indigo-100 font-bold">World Cup Mode</span>
-                          <span className="text-[9px] text-indigo-300/70">Enable custom themes & flags</span>
-                        </div>
-                        <button 
-                          onClick={() => {
-                            if (wcEnabled) {
-                              setWcEnabled(false);
-                            } else {
-                              setWcEnabled(true);
-                              setShowOnboarding(true);
-                            }
-                          }}
-                          className={cn(
-                            "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                            wcEnabled ? "bg-cyan-500" : "bg-zinc-700"
-                          )}
-                        >
-                          <span className={cn(
-                            "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                            wcEnabled ? (document.documentElement.dir === 'rtl' ? "-translate-x-4" : "translate-x-4") : "translate-x-0"
-                          )} />
-                        </button>
-                      </div>
-
-                      {wcEnabled && (
-                        <div className="flex gap-2 pt-1">
-                          <button 
-                            onClick={() => {
-                              setIsProfileModalOpen(false);
-                              setShowOnboarding(true);
-                            }}
-                            className="flex-1 py-1.5 px-3 bg-indigo-500/30 hover:bg-indigo-500/50 text-white rounded-lg text-[9px] uppercase font-black tracking-widest transition-all text-center border border-white/5 cursor-pointer"
-                          >
-                            Re-Run Onboarding
-                          </button>
-                          <button 
-                            onClick={() => {
-                              setIsProfileModalOpen(false);
-                              // Click floating tournament button to trigger configs
-                              setTimeout(() => {
-                                const btn = document.getElementById('world-cup-floating-btn');
-                                if (btn) {
-                                  (btn as HTMLButtonElement).click();
-                                }
-                              }, 100);
-                            }}
-                            className="flex-1 py-1.5 px-3 bg-cyan-500/30 hover:bg-cyan-500/50 text-white rounded-lg text-[9px] uppercase font-black tracking-widest transition-all text-center border border-white/5 cursor-pointer"
-                          >
-                            Configure Teams
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <p className="text-xs text-red-200/90 leading-relaxed font-sans">
+                      All FIFA World Cup features, live match trackers, and customized team widgets have been **permanently deactivated and removed** from the platform. We stand in absolute solidarity against systemic bias, racism, and unfairness demonstrated toward the Egypt National Team.
+                    </p>
                   </div>
 
                   <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
@@ -7857,9 +7795,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {/* World Cup 2026 Floating Button */}
-      <FloatingWorldCupButton />
-      <WorldCupOnboarding />
+
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {

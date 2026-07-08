@@ -1369,7 +1369,17 @@ export function WorldCupMatchTracker({ compact = false, onClose }: MatchTrackerP
     const saved = localStorage.getItem('memuer_wc_ticker_matches');
     if (saved) {
       try {
-        setMatches(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        const hasOutdatedMatches = parsed.some((m: any) => 
+          ((m.homeTeam === 'Scotland' || m.awayTeam === 'Scotland' || m.homeTeam === 'Brazil' || m.awayTeam === 'Brazil') && m.status !== 'finished') ||
+          (m.id >= 51 && m.id <= 70 && m.status === 'scheduled')
+        );
+        if (hasOutdatedMatches || parsed.length !== INITIAL_WC_MATCHES.length) {
+          localStorage.removeItem('memuer_wc_ticker_matches');
+          setMatches(INITIAL_WC_MATCHES);
+        } else {
+          setMatches(parsed);
+        }
       } catch (_) {
         setMatches(INITIAL_WC_MATCHES);
       }
@@ -1386,7 +1396,7 @@ export function WorldCupMatchTracker({ compact = false, onClose }: MatchTrackerP
       setLoading(false);
     });
 
-    // Dynamic Simulator: runs every 8 seconds of active display
+    // Dynamic Simulator: runs every 12 seconds of active display
     const interval = setInterval(() => {
       setMatches(prev => {
         let hasChanges = false;
@@ -1442,7 +1452,7 @@ export function WorldCupMatchTracker({ compact = false, onClose }: MatchTrackerP
         }
         return updated;
       });
-    }, 8000);
+    }, 12000);
 
     return () => clearInterval(interval);
   }, [language, fetchMatchesData]);

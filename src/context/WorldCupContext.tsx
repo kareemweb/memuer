@@ -44,43 +44,10 @@ export function WorldCupProvider({ children }: { children: ReactNode }) {
     return [];
   });
   const [, setThemeModeState] = useState<ThemeMode>('country');
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.hasSeenOnboarding !== undefined) {
-          return data.hasSeenOnboarding === false;
-        }
-      }
-    } catch (_) {}
-    return true;
-  });
-  const [wcEnabled, setWcEnabled] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.enabled !== undefined) {
-          return data.enabled !== false;
-        }
-      }
-    } catch (_) {}
-    return true;
-  });
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [wcEnabled, setWcEnabled] = useState<boolean>(false);
 
-  const [sidebarWidgetPinned, setSidebarWidgetPinned] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.sidebarWidgetPinned !== undefined) {
-          return data.sidebarWidgetPinned === true;
-        }
-      }
-    } catch (_) {}
-    return false;
-  });
+  const [sidebarWidgetPinned, setSidebarWidgetPinned] = useState<boolean>(false);
 
   // Computed theme mode: use country if primaryCountry exists and World Cup mode is enabled, else default
   const primaryCountry = React.useMemo(() => {

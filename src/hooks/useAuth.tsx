@@ -23,6 +23,11 @@ export function useAuth() {
   useEffect(() => {
     let docUnsubscribe: (() => void) | null = null;
 
+    const safetyTimeout = setTimeout(() => {
+      console.warn("Auth initialization safety timeout reached. Forcing loading state to resolve.");
+      setLoading(false);
+    }, 6000);
+
     const authUnsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       // Clean up previous doc listener if any
       if (docUnsubscribe) {
@@ -66,6 +71,7 @@ export function useAuth() {
 
           // Real-time synchronization of custom Firestore profile fields into the merged 'user' state
           docUnsubscribe = onSnapshot(userDocRef, (snap) => {
+            clearTimeout(safetyTimeout);
             if (snap.exists()) {
               const data = snap.data();
               const latestKeys = getStoredKeyPair(firebaseUser.uid);
@@ -88,23 +94,27 @@ export function useAuth() {
             }
             setLoading(false);
           }, (err) => {
+            clearTimeout(safetyTimeout);
             console.error("Error syncing user document:", err);
             setUser(firebaseUser as any);
             setLoading(false);
           });
 
         } catch (err: any) {
+          clearTimeout(safetyTimeout);
           console.error("Error setting up user profile in firestore:", err);
           setUser(firebaseUser as any);
           setLoading(false);
         }
       } else {
+        clearTimeout(safetyTimeout);
         setUser(null);
         setLoading(false);
       }
     });
 
     return () => {
+      clearTimeout(safetyTimeout);
       authUnsubscribe();
       if (docUnsubscribe) {
         docUnsubscribe();

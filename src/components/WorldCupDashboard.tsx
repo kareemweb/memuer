@@ -284,7 +284,7 @@ export const WorldCupDashboard: React.FC<{
     initMatches();
   }, [supportedTeams]);
 
-  // 3. Simulated real-time score updates ticking every 10 seconds
+  // 3. Simulated real-time score updates ticking every 12 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveMatches(prev => {
@@ -339,7 +339,7 @@ export const WorldCupDashboard: React.FC<{
           };
         });
       });
-    }, 10000);
+    }, 12000);
 
     return () => clearInterval(interval);
   }, [activeMatches]);
