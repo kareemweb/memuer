@@ -1,47 +1,51 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { WORLD_CUP_MATCHES } from "./src/data/worldCupMatches";
 
 dotenv.config();
 
-const getAIClient = () => {
-  let apiKey = process.env.GEMINI_API_KEY || '';
-  if (apiKey) {
-    apiKey = apiKey.replace(/^["']|["']$/g, '');
-  }
-  return new GoogleGenAI({ apiKey });
-};
-
 async function askAIServer(prompt: string, history?: string): Promise<string> {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || '';
-    if (!apiKey) {
-      console.warn("GEMINI_API_KEY is not defined in server environment");
-      return "⚠️ [Private AI Configuration Required] The secure Gemini API Key is not set in the server environment. Please define GEMINI_API_KEY in the Secrets settings panel.";
+    const apiKey = (process.env.NVIDIA_API_KEY || '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').trim().replace(/^["']|["']$/g, '');
+    
+    const systemInstruction = `You are Memuer AI, a secure and private AI companion embedded within Memuer (an E2EE end-to-end encrypted messaging application) powered by NVIDIA NIM. Maintain high confidentiality. Since you are talking in a secure, encrypted chat room, respect the privacy and do not leak user keys. Be helpful, concise, and professional.`;
+
+    const messages = [
+      { role: "system", content: systemInstruction }
+    ];
+
+    if (history) {
+      messages.push({ role: "user", content: `Chat History:\n${history}\n\nUser: ${prompt}` });
+    } else {
+      messages.push({ role: "user", content: prompt });
     }
 
-    const ai = getAIClient();
-    const systemInstruction = `You are Memuer AI, a secure and private AI companion embedded within Memuer (an E2EE end-to-end encrypted messaging application). Maintain high confidentiality. Since you are talking in a secure, encrypted chat room, respect the privacy and do not leak user keys. Be helpful, concise, and professional.`;
-    
-    const fullPrompt = history 
-      ? `Chat History:\n${history}\n\nUser: ${prompt}` 
-      : prompt;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
-      contents: fullPrompt,
-      config: {
-        systemInstruction,
-      }
+    const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "meta/llama-3.1-8b-instruct",
+        messages,
+        temperature: 0.7
+      })
     });
-    
-    return response.text || '';
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`NVIDIA API returned status ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json() as any;
+    const content = data?.choices?.[0]?.message?.content;
+    return content || '';
   } catch (error: any) {
-    console.error("Error calling Gemini API on server:", error);
-    return `Error: Could not generate a response from Gemini AI companion. Reason: ${error?.message || error}`;
+    console.error("Error calling NVIDIA API on server:", error);
+    return `Error: Could not generate a response from NVIDIA AI companion. Reason: ${error?.message || error}`;
   }
 }
 

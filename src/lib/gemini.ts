@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 export async function askAI(prompt: string, history?: string): Promise<string> {
   // First, attempt to contact our server proxy to keep API keys hidden (if server-side environment is active)
   try {
@@ -30,19 +28,12 @@ export async function askAI(prompt: string, history?: string): Promise<string> {
   try {
     const env = (import.meta as any).env || {};
     // Extract VITE_ prefixed variables first to support static bundles
-    let apiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || '';
+    let apiKey = env.VITE_NVIDIA_API_KEY || env.NVIDIA_API_KEY || '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';
 
     if (!apiKey) {
       // Direct LocalStorage Override for static hosting installations without server companion
       try {
-        apiKey = localStorage.getItem('VITE_GEMINI_API_KEY') || localStorage.getItem('GEMINI_API_KEY') || '';
-      } catch (_) {}
-    }
-
-    if (!apiKey) {
-      // Fallback check on process.env in case of custom bundlers
-      try {
-        apiKey = (process as any).env?.GEMINI_API_KEY || (process as any).env?.VITE_GEMINI_API_KEY || '';
+         apiKey = localStorage.getItem('VITE_NVIDIA_API_KEY') || localStorage.getItem('NVIDIA_API_KEY') || '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';
       } catch (_) {}
     }
 
@@ -55,37 +46,46 @@ export async function askAI(prompt: string, history?: string): Promise<string> {
 Memuer AI is running as a client-side static application because the backend server proxy is unreachable (404).
 
 To resolve this and activate your private AI:
-1. Set the environment variable 'VITE_GEMINI_API_KEY' in your web hosting dashboard (such as Vercel, Netlify, Cloud Run, Cloudflare Pages, etc.) and trigger a rebuild.
+1. Set the environment variable 'VITE_NVIDIA_API_KEY' in your web hosting dashboard and trigger a rebuild.
 2. Or, for a quick secure local session, run this command in your browser's Developer Console and reload:
-   localStorage.setItem('VITE_GEMINI_API_KEY', 'YOUR_GEMINI_API_KEY_HERE')`;
+   localStorage.setItem('VITE_NVIDIA_API_KEY', 'YOUR_NVIDIA_API_KEY_HERE')`;
     }
 
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build'
-        }
-      }
+    const systemInstruction = `You are Memuer AI, a secure and private AI companion embedded within Memuer (an E2EE end-to-end encrypted messaging application) powered by NVIDIA NIM. Maintain high confidentiality. Since you are talking in a secure, encrypted chat room, respect the privacy and do not leak user keys. Be helpful, concise, and professional.`;
+
+    const messages = [
+      { role: "system", content: systemInstruction }
+    ];
+
+    if (history) {
+      messages.push({ role: "user", content: `Chat History:\n${history}\n\nUser: ${prompt}` });
+    } else {
+      messages.push({ role: "user", content: prompt });
+    }
+
+    const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "meta/llama-3.1-8b-instruct",
+        messages,
+        temperature: 0.7
+      })
     });
 
-    const systemInstruction = `You are Memuer AI, a secure and private AI companion embedded within Memuer (an E2EE end-to-end encrypted messaging application). Maintain high confidentiality. Since you are talking in a secure, encrypted chat room, respect the privacy and do not leak user keys. Be helpful, concise, and professional.`;
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`NVIDIA API returned status ${res.status}: ${errText}`);
+    }
 
-    const fullPrompt = history 
-      ? `Chat History:\n${history}\n\nUser: ${prompt}` 
-      : prompt;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
-      contents: fullPrompt,
-      config: {
-        systemInstruction,
-      }
-    });
-
-    return response.text || "No response received from GenAI subnet.";
+    const data = await res.json() as any;
+    const content = data?.choices?.[0]?.message?.content;
+    return content || "No response received from NVIDIA API.";
   } catch (fallbackError: any) {
-    console.error("Browser-side direct Gemini call failed:", fallbackError);
-    return `Error: Could not secure responses from neural subnet proxy or client fallback. (${fallbackError?.message || fallbackError})`;
+    console.error("Browser-side direct NVIDIA call failed:", fallbackError);
+    return `Error: Could not secure responses from NVIDIA server proxy or client fallback. (${fallbackError?.message || fallbackError})`;
   }
 }
